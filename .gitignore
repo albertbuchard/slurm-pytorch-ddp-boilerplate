@@ -1,0 +1,34 @@
+# Data files
+data/
+
+# Output and generated files
+output/*.*
+output*/*.*
+analyses/
+wandb/
+
+# IDE related
+.idea/
+.vscode/
+
+# Model checkpoints or saved models
+models/
+
+# Python related
+*/__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Test outputs
+tests/output/
+tests/models/
+
+# Configuration and environment files
+*.local.*
+.env
+
+# Virtual environment
+venv/
+*.venv

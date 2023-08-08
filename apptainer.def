@@ -1,0 +1,22 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/pytorch:23.06-py3
+
+%files
+    /path/to/requirements.txt /app/requirements.txt
+    ./.env /app/.env
+
+%post
+    apt-get update && apt-get install -y python3-pip
+    pip3 install -r /app/requirements.txt
+    pip3 install --user torch torchvision torchaudio
+
+%environment
+    export WANDB_API_KEY=$(cat /app/.env | grep WANDB_API_KEY | cut -d '=' -f 2)
+    export WANDB_BASE_URL=$(cat /app/.env | grep WANDB_BASE_URL | cut -d '=' -f 2)
+
+%runscript
+    exec /bin/bash "$@"
+
+%help
+    To run the container:
+        apptainer run --nv -B /path/to/slurm-pytorch-ddp-boilerplate:/app -B /path/to/data:/data slurm-pytorch-ddp-boilerplate.sif /path/to/script.py --arg1 --arg2
