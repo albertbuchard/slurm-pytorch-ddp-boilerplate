@@ -5,7 +5,8 @@ import torch
 from torch.nn import functional as F
 from tqdm import tqdm
 
-from src.ddp.ddp_utils import dprint, dist_identity, DistributedWandb, distribute_str, conditional_join
+from src.ddp.ddp_utils import dprint, dist_identity, distribute_str, conditional_join
+from src.ddp.distributed_wandb import DistributedWandb
 from src.ddp.device_singleton import device
 from src.trainer_v1.factories import get_training_objects
 from src.utilities import current_config

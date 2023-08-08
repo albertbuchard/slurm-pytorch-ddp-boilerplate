@@ -8,7 +8,7 @@ if [ ! -d "$VENV_PATH" ]; then
 fi
 
 setup() {
-    echo "Creating venv environment..."
+    echo "Creating venv environment in $VENV_PATH.."
     echo "Python version: $(python --version)"
     python -m venv $VENV_PATH
     source $VENV_PATH/bin/activate

@@ -1,6 +1,7 @@
 #!/bin/bash
 echo "+++++++++++SETUP++++++++++++"
 # Load modules
+# TODO you might need to adapt the modules to your SLURM setup
 # - Python
 VERSION_PYTHON='3.10.4'
 module load GCCcore/11.3.0

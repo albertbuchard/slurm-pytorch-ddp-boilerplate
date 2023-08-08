@@ -15,8 +15,8 @@ project_root = os.path.join(root, "slurm-pytorch-ddp-boilerplate")
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from src.ddp.ddp_utils import device, dprint, ddp_setup, dist_identity, safe_barrier, hello_distributed, \
-    DistributedWandb
+from src.ddp.ddp_utils import device, dprint, ddp_setup, dist_identity, safe_barrier, hello_distributed
+from src.ddp.distributed_wandb import DistributedWandb
 
 
 def main():
@@ -47,10 +47,6 @@ def main():
     parser.add_argument('--sweep-config', type=str, help='Wandb sweep config', default=None)
     # Is wandb sweep
     parser.add_argument('--sweep', action='store_true', help='Run sweep', default=False)
-    # Pretrain
-    parser.add_argument('--pretrain', action='store_true', help='Run pretraining', default=False)
-    # No training
-    parser.add_argument('--notraining', action='store_true', help='No training', default=False)
     args = parser.parse_args()
 
     # Set seed
@@ -118,7 +114,7 @@ def main():
     # Training
     if args.sweep:
         sweep()
-    elif not args.notraining:
+    else:
         wandb.init()
         training_loop(args.dry_run)
 
