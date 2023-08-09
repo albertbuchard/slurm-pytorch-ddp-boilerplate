@@ -19,7 +19,7 @@ default_data_config = {}
 
 default_trainer_config = {
     "cpu_only": False,
-    "max_epochs": 2,
+    "max_epochs": 14,
     "batch_size": 64,
     "test_batch_size": 1000,
     "optimizer": "adadelta",
