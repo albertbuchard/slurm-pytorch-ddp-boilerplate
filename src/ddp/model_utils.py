@@ -1,6 +1,6 @@
 import os
 
-from wandb.wandb_torch import torch
+import torch
 
 from src.ddp.ddp_utils import dist_identity
 

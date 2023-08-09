@@ -17,13 +17,17 @@ class DistributedWandb:
     _instance = None
     _initialized = False
 
-    def __init__(self, every_process=False, **kwargs):
+    def __init__(self, every_process=False, key=None, **kwargs):
         if not DistributedWandb._initialized:
+            if key is not None:
+                os.environ["WANDB_API_KEY"] = key
             self._every_process = every_process
             self.has_logged_in = False
             self.is_emitting = False
             self.project = None
             self.group = None
+            if os.getenv("WANDB_API_KEY") is None:
+                dprint("WANDB_API_KEY not found in environment. Check your .env file. Disabling Wandb.", flush=True)
             self.setup(**kwargs)
 
             DistributedWandb._initialized = True
@@ -35,6 +39,8 @@ class DistributedWandb:
 
     def setup(self, project=None, group=None, **kwargs) -> None:
         if dist_identity.rank == 0 or self._every_process:
+            if os.getenv("WANDB_API_KEY") is None:
+                return
             dprint(f"Initializing wandb with kwargs: {kwargs}", flush=True)
             load_dotenv()
             import wandb as _wandb
@@ -53,7 +59,7 @@ class DistributedWandb:
     def init(self, project=None, group=None, **kwargs) -> 'DistributedWandb':
         if not self.has_logged_in:
             self.setup(project=project, group=group, **kwargs)
-        if dist_identity.rank == 0 or self._every_process:
+        if self.has_logged_in and (dist_identity.rank == 0 or self._every_process):
             dprint(f"Reinitializing wandb with kwargs: {kwargs}", flush=True)
             import wandb as _wandb
             if project is None:
@@ -125,6 +131,14 @@ class DistributedWandb:
             import wandb as _wandb
             _wandb.watch(*args, **kwargs)
 
+    @property
+    def run_dir(self):
+        if self.is_emitting:
+            import wandb as _wandb
+            return _wandb.run.dir
+        else:
+            return None
+
     def __getattr__(self, name):
         if self.is_emitting:
             import wandb as _wandb
@@ -148,3 +162,4 @@ class DistributedWandb:
 
     def __repr__(self):
         return self.__str__()
+

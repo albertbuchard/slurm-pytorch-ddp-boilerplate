@@ -2,11 +2,13 @@ import json
 import os
 import sys
 
+
 default_root = os.path.realpath(__file__).split("slurm-pytorch-ddp-boilerplate")[0]
 default_project_root = os.path.join(default_root, "slurm-pytorch-ddp-boilerplate")
 if default_project_root not in sys.path:
     sys.path.append(default_project_root)
 
+from src.utilities.cryptography import hash_sha256
 from src.ddp.ddp_utils import dprint
 
 
@@ -142,6 +144,12 @@ class CurrentConfig:
     def __getitem__(self, item):
         return self.get_recursive(self.__dict__, item)
 
+    def get(self, item, default=None):
+        result = self.get_recursive(self.__dict__, item)
+        if result is None:
+            return default
+        return result
+
     def set_recursive(self, path, key, value):
         dictionary = self.__dict__
         if path != "":
@@ -217,6 +225,10 @@ class CurrentConfig:
 
     def print(self):
         print(self.__str__())
+
+    @property
+    def hash(self):
+        return hash_sha256(json.dumps(self.__dict__, sort_keys=True))
 
 
 current_config = CurrentConfig()

@@ -1,16 +1,16 @@
 import os
 
 import torch
-import wandb
 from torch import distributed as dist, optim
 from torch.distributed.optim import ZeroRedundancyOptimizer
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader, Subset, IterableDataset, DistributedSampler
 from torchvision import datasets, transforms
 
 from src.ddp.ddp_utils import dprint, dist_identity
 from src.ddp.device_singleton import device
+from src.ddp.distributed_wandb import DistributedWandb
 from src.ddp.model_utils import count_parameters, size_of_model
 from src.trainer_v1.model import MNISTNet
 from src.utilities import current_config, TrainingObjects, SplitDataset
@@ -27,6 +27,7 @@ def get_model():
     model = model.to(device.get())
 
     if current_config.stdout:
+        wandb = DistributedWandb()
         dprint(f"Moved model to {device}")
         # Get model size and print
         model_params = count_parameters(model)
@@ -100,28 +101,36 @@ def get_training_objects():
         dprint(f"Using {num_workers} workers for data loading")
         # num_workers = 0
 
+    sampler = None
+    if not isinstance(datasets.train, IterableDataset) and dist.is_initialized():
+        sampler = DistributedSampler
     train_loader = torch.utils.data.DataLoader(datasets.train,
                                                # collate_fn=collate_fn,
+                                               shuffle=False,
                                                batch_size=current_config["batch_size"],
-                                               num_workers=num_workers)
+                                               num_workers=num_workers,
+                                               sampler=sampler(datasets.train) if sampler is not None else None)
     validation_loader = None
     if datasets.val is not None:
         validation_loader = torch.utils.data.DataLoader(datasets.val,
                                                         # collate_fn=collate_fn,
+                                                        shuffle=False,
                                                         batch_size=current_config["test_batch_size"],
-                                                        num_workers=num_workers)
+                                                        num_workers=num_workers,
+                                                        sampler=sampler(datasets.val) if sampler is not None else None)
     test_loader = None
     if datasets.test is not None:
         test_loader = torch.utils.data.DataLoader(datasets.test,
                                                   # collate_fn=collate_fn,
+                                                  shuffle=False,
                                                   batch_size=current_config["test_batch_size"],
-                                                  num_workers=num_workers)
+                                                  num_workers=num_workers,
+                                                  sampler=sampler(datasets.test) if sampler is not None else None)
 
     # Get model
     if current_config.stdout:
         dprint("Model creation", flush=True)
-    model, transformer_config = get_model()
-    model.return_self_loss = False
+    model = get_model()
     if current_config.stdout:
         dprint("Model created", flush=True)
 

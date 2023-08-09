@@ -22,6 +22,7 @@ class MNISTNetConfig:
 class MNISTNet(nn.Module):
     def __init__(self, config: MNISTNetConfig = MNISTNetConfig()):
         super(MNISTNet, self).__init__()
+        self.config = config
 
         # Dynamically create convolutional layers based on conv_params
         self.convs = nn.ModuleList()

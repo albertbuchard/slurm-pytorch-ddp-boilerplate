@@ -5,15 +5,15 @@ import time
 
 import torch
 
-from src.trainer_v1.configurations.default_configuration import default_model_config, default_data_config, \
-    default_trainer_config, default_wandb_config, default_sweep_config
-from src.trainer_v1.trainer import sweep, training_loop
-from src.utilities import current_config
-
 root = os.path.realpath(__file__).split("slurm-pytorch-ddp-boilerplate")[0]
 project_root = os.path.join(root, "slurm-pytorch-ddp-boilerplate")
 if project_root not in sys.path:
     sys.path.append(project_root)
+
+from src.trainer_v1.configurations.default_configuration import default_model_config, default_data_config, \
+    default_trainer_config, default_wandb_config, default_sweep_config
+from src.trainer_v1.trainer import sweep, training_loop
+from src.utilities import current_config
 
 from src.ddp.ddp_utils import device, dprint, ddp_setup, dist_identity, safe_barrier, hello_distributed
 from src.ddp.distributed_wandb import DistributedWandb
