@@ -266,11 +266,12 @@ The `main.py` serves as the primary entry point for the boilerplate and offers a
 1. Instantiate the `DistributedWandb` class:
 
    ```python
+   from src.ddp.distributed_wandb import DistributedWandb
    wandb = DistributedWandb(every_process=False, project="Your_Project_Name")
    ```
 
 2. Log data:
-
+    
    ```python
    wandb.log({"loss": loss_value})
    ```
@@ -317,11 +318,15 @@ During the development of this boilerplate, various learnings emerged that could
 - Account information: `sacct`
 - User-specific queue: `squeue -u <user>`
 
----
+--- 
 
 ## Contributing
 
-Feel free to fork this repository, make your changes, and submit pull requests. We appreciate any contributions that can enhance the capabilities of this boilerplate!
+Your contributions to `slurm-pytorch-ddp-boilerplate` enrich the project and benefit all users. 
+
+Whether you're improving documentation, reporting bugs, suggesting features, or writing code, we appreciate your efforts.
+
+For a clear step by step on how to contribute, please refer to the [contributing guidelines](CONTRIBUTING.md).
 
 ---
 
