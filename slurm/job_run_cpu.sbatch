@@ -9,7 +9,7 @@
 #SBATCH --mem-per-cpu=4G          # memory per CPU core
 #SBATCH --partition=shared-cpu
 
-./setup_slurm.sh
+../setup_slurm.sh
 
 echo " * * * Starting slurm run. * * *"
 
