@@ -51,14 +51,24 @@ def get_datasets():
     ])
 
     data_folder = current_config.get("data_folder", os.path.join(current_config["project_root"], "data"))
-    os.makedirs(data_folder, exist_ok=True)
 
-    train_dataset = datasets.MNIST(data_folder, train=True,
-                                   download=dist_identity.rank == 0,
-                                   transform=transform)
+    if dist_identity.rank == 0:
+        os.makedirs(data_folder, exist_ok=True)
+        # Download the dataset on rank 0 to avoid corrupting the dataset
+        train_dataset = datasets.MNIST(data_folder, train=True,
+                                       download=True,
+                                       transform=transform)
+    # Ensure all processes wait until the download is complete
+    safe_barrier()
+
+    # For non-rank 0 processes, load the dataset without downloading
+    if dist_identity.rank > 0:
+        train_dataset = datasets.MNIST(data_folder, train=True,
+                                       download=False,
+                                       transform=transform)
+
     test_dataset = datasets.MNIST(data_folder, train=False,
                                   transform=transform)
-    safe_barrier()
 
     # Split training dataset into training and validation
     # test_size not used here
