@@ -12,7 +12,7 @@ setup() {
     echo "Python version: $(python --version)"
     python -m venv $VENV_PATH
     source $VENV_PATH/bin/activate
-    pip install -r requirements.txt
+    pip install -r ./requirements.txt
 }
 
 gpu_setup() {
