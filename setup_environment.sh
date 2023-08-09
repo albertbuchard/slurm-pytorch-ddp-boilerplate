@@ -1,6 +1,8 @@
 #!/bin/bash
 
-export VENV_PATH="$HOME/venv/slurm-pytorch-ddp-boilerplate"
+if [ -z "$VENV_PATH" ]; then
+    export VENV_PATH="$HOME/venv/slurm-pytorch-ddp-boilerplate"
+fi
 
 if [ ! -d "$VENV_PATH" ]; then
     echo "Creating directory: $VENV_PATH"

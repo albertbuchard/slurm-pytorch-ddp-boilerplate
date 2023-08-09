@@ -10,11 +10,12 @@
 #SBATCH --gres=gpu:2              # GPUs per node
 #SBATCH --partition=shared-gpu
 
+export VENV_PATH="$HOME/venv/slurm-pytorch-ddp-boilerplate"
 ./setup_slurm.sh
 
 echo " * * * Starting slurm run. * * *"
 
-source $VENV_PATH/bin/activate
+source "$VENV_PATH"/bin/activate
 srun python3 ../main.py --sweep
 
 echo " * * * Slurm run finished. * * *"

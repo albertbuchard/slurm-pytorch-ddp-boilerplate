@@ -9,6 +9,7 @@
 #SBATCH --mem-per-cpu=4G          # memory per CPU core
 #SBATCH --partition=shared-cpu
 
+export VENV_PATH="$HOME/venv/slurm-pytorch-ddp-boilerplate"
 ./setup_slurm.sh
 
 echo " * * * Starting slurm run. * * *"
