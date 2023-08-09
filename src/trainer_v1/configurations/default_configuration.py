@@ -42,7 +42,7 @@ default_wandb_config = {
 default_sweep_config = {
     "method": "grid",  # "bayes",
     "metric": {
-        "name": "Validation Loss",
+        "name": "Test Loss",
         "goal": "minimize"
     },
     "run_cap": 10,
@@ -53,10 +53,10 @@ default_sweep_config = {
     # },
     "parameters": {
         "lr": {
-            "values": [1e-4, 1e-5, 1e-6, 1e-7]
+            "values": [1, 0.1, 0.01, 0.001, 0.0001]
         },
         "batch_size": {
-            "values": [1, 10, 100, 200]
+            "values": [64, 128, 256, 512]
         },
         "optimizer": {
             "values": ["adadelta", "adam"]

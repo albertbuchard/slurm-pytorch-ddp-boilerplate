@@ -19,6 +19,7 @@ class DistributedWandb:
 
     def __init__(self, every_process=False, key=None, **kwargs):
         if not DistributedWandb._initialized:
+            load_dotenv()
             if key is not None:
                 os.environ["WANDB_API_KEY"] = key
             self._every_process = every_process

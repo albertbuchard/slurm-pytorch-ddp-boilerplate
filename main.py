@@ -4,6 +4,7 @@ import sys
 import time
 
 import torch
+from dotenv import load_dotenv
 
 root = os.path.realpath(__file__).split("slurm-pytorch-ddp-boilerplate")[0]
 project_root = os.path.join(root, "slurm-pytorch-ddp-boilerplate")
@@ -18,6 +19,7 @@ from src.utilities import current_config
 from src.ddp.ddp_utils import device, dprint, ddp_setup, dist_identity, safe_barrier, hello_distributed
 from src.ddp.distributed_wandb import DistributedWandb
 
+load_dotenv()
 
 def main():
     parser = argparse.ArgumentParser(description='BCause TorchRun')

@@ -83,15 +83,17 @@ def training_loop(dry_run=False, no_save=False):
 
     # Wandb watch model
     wandb = DistributedWandb()
-    wandb.watch(training_items.model)
+    if not device.is_mps():
+        # Wandb watch model does not work seem to work well with MPS
+        wandb.watch(training_items.model)
 
     # Training loop, conditional join is used to make sure that all processes
-    # are in sync when one process is done before the others (avoids hanging)
+    # are in sync when one process is done before the others (avoids process hanging forever)
     with conditional_join(training_items.model, training_items.optimizer):
         for epoch in tqdm(range(current_config["max_epochs"]), desc="Epochs", position=1, leave=False, colour="green",
                           disable=dist_identity.rank != 0):
             training_loss = train(training_items=training_items, epoch=epoch, dry_run=dry_run)
-            validation_loss = validate(training_items)
+            validation_loss = validate(training_items, type="validation")
             training_items.scheduler.step()
             wandb.log({"Training Loss": training_loss,
                        "Validation Loss": validation_loss,
@@ -99,7 +101,7 @@ def training_loop(dry_run=False, no_save=False):
                        "lr": training_items.scheduler.get_last_lr()[0]})
 
         if training_items.test_loader is not None:
-            test_loss = validate(training_items)
+            test_loss = validate(training_items, type="test")
             wandb.log({"Test Loss": test_loss})
 
     if not no_save and dist_identity.rank == 0:

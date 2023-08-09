@@ -14,7 +14,7 @@
 
 echo " * * * Starting slurm run. * * *"
 
-srun python3 ../src/bcause/torchrun_bcause.py --sweep
+srun python3 ../main.py --sweep
 
 echo " * * * Slurm run finished. * * *"
 

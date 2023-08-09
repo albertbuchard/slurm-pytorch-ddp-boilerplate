@@ -2,14 +2,40 @@ import json
 import os
 import sys
 
-
 default_root = os.path.realpath(__file__).split("slurm-pytorch-ddp-boilerplate")[0]
 default_project_root = os.path.join(default_root, "slurm-pytorch-ddp-boilerplate")
 if default_project_root not in sys.path:
     sys.path.append(default_project_root)
 
 from src.utilities.cryptography import hash_sha256
+
 from src.ddp.ddp_utils import dprint
+
+
+def get_nested_serializable_dict(dictionary):
+    if hasattr(dictionary, "__dict__"):
+        dictionary = dictionary.__dict__
+    if isinstance(dictionary, dict):
+        serializable_dict = {}
+        for k, v in dictionary.items():
+            if hasattr(v, "__dict__"):
+                v = v.__dict__
+            if isinstance(v, dict):
+                serializable_dict[k] = get_nested_serializable_dict(v)
+            elif isinstance(v, list):
+                serializable_dict[k] = []
+                for item in v:
+                    if hasattr(item, "__dict__"):
+                        item = item.__dict__
+                    if isinstance(item, dict):
+                        serializable_dict[k].append(get_nested_serializable_dict(item))
+                    else:
+                        serializable_dict[k].append(item)
+            else:
+                serializable_dict[k] = v
+        return serializable_dict
+    else:
+        return dictionary
 
 
 def get_keys_recursive(dictionary):
@@ -228,7 +254,7 @@ class CurrentConfig:
 
     @property
     def hash(self):
-        return hash_sha256(json.dumps(self.__dict__, sort_keys=True))
+        return hash_sha256(json.dumps(get_nested_serializable_dict(self.__dict__), sort_keys=True))
 
 
 current_config = CurrentConfig()
