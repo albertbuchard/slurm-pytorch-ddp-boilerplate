@@ -12,6 +12,7 @@ setup() {
     echo "Python version: $(python --version)"
     python -m venv $VENV_PATH
     source $VENV_PATH/bin/activate
+    echo "Current folder: $(pwd)"
     pip install -r ./requirements.txt
 }
 
