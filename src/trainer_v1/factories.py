@@ -106,12 +106,11 @@ def get_datasets():
 def get_training_objects():
     datasets = get_datasets()
 
-    num_workers = dist_identity.cpu_per_task
-    if num_workers is None:
+    num_cores = dist_identity.cpu_per_task
+    if num_cores is None:
         num_cores = os.cpu_count()
-        num_workers = max(1, min(2, num_cores - 2))
-        dprint(f"Using {num_workers} workers for data loading")
-        # num_workers = 0
+    num_workers = max(1, num_cores - 2)
+    dprint(f"Using {num_workers} workers for data loading")
 
     sampler = None
     if not isinstance(datasets.train, IterableDataset) and dist.is_initialized():
