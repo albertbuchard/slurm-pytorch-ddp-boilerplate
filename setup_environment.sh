@@ -12,8 +12,16 @@ setup() {
     echo "Python version: $(python --version)"
     python -m venv $VENV_PATH
     source $VENV_PATH/bin/activate
-    echo "Current folder: $(pwd)"
-    pip install -r ./requirements.txt
+    echo "Installing requirements..."
+    # Check for the location of requirements.txt
+    if [[ -f ./requirements.txt ]]; then
+        pip install -r ./requirements.txt
+    elif [[ -f ../requirements.txt ]]; then
+        pip install -r ../requirements.txt
+    else
+        echo "ERROR: Could not find requirements.txt file."
+        exit 1
+    fi
 }
 
 gpu_setup() {
