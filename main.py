@@ -4,20 +4,22 @@ import sys
 import time
 
 import torch
-
-from src.trainer_v1.configurations.default_configuration import default_model_config, default_data_config, \
-    default_trainer_config, default_wandb_config, default_sweep_config
-from src.trainer_v1.trainer import sweep, training_loop
-from src.utilities import current_config
+from dotenv import load_dotenv
 
 root = os.path.realpath(__file__).split("slurm-pytorch-ddp-boilerplate")[0]
 project_root = os.path.join(root, "slurm-pytorch-ddp-boilerplate")
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from src.ddp.ddp_utils import device, dprint, ddp_setup, dist_identity, safe_barrier, hello_distributed, \
-    DistributedWandb
+from src.trainer_v1.configurations.default_configuration import default_model_config, default_data_config, \
+    default_trainer_config, default_wandb_config, default_sweep_config
+from src.trainer_v1.trainer import sweep, training_loop
+from src.utilities import current_config
 
+from src.ddp.ddp_utils import device, dprint, ddp_setup, dist_identity, safe_barrier, hello_distributed
+from src.ddp.distributed_wandb import DistributedWandb
+
+load_dotenv()
 
 def main():
     parser = argparse.ArgumentParser(description='BCause TorchRun')
@@ -47,10 +49,6 @@ def main():
     parser.add_argument('--sweep-config', type=str, help='Wandb sweep config', default=None)
     # Is wandb sweep
     parser.add_argument('--sweep', action='store_true', help='Run sweep', default=False)
-    # Pretrain
-    parser.add_argument('--pretrain', action='store_true', help='Run pretraining', default=False)
-    # No training
-    parser.add_argument('--notraining', action='store_true', help='No training', default=False)
     args = parser.parse_args()
 
     # Set seed
@@ -118,7 +116,7 @@ def main():
     # Training
     if args.sweep:
         sweep()
-    elif not args.notraining:
+    else:
         wandb.init()
         training_loop(args.dry_run)
 

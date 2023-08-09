@@ -19,9 +19,11 @@ class MNISTNetConfig:
     fc1_out_features: int = 128
     fc2_out_features: int = 10
 
+
 class MNISTNet(nn.Module):
     def __init__(self, config: MNISTNetConfig = MNISTNetConfig()):
         super(MNISTNet, self).__init__()
+        self.config = config
 
         # Dynamically create convolutional layers based on conv_params
         self.convs = nn.ModuleList()

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-VENV_PATH="$HOME/venv/slurm-pytorch-ddp-boilerplate"
+if [ -z "$VENV_PATH" ]; then
+    export VENV_PATH="$HOME/venv/slurm-pytorch-ddp-boilerplate"
+fi
 
 if [ ! -d "$VENV_PATH" ]; then
     echo "Creating directory: $VENV_PATH"
@@ -8,11 +10,20 @@ if [ ! -d "$VENV_PATH" ]; then
 fi
 
 setup() {
-    echo "Creating venv environment..."
+    echo "Creating venv environment in $VENV_PATH.."
     echo "Python version: $(python --version)"
     python -m venv $VENV_PATH
     source $VENV_PATH/bin/activate
-    pip install -r requirements.txt
+    echo "Installing requirements..."
+    # Check for the location of requirements.txt
+    if [[ -f ./requirements.txt ]]; then
+        pip install -r ./requirements.txt
+    elif [[ -f ../requirements.txt ]]; then
+        pip install -r ../requirements.txt
+    else
+        echo "ERROR: Could not find requirements.txt file."
+        exit 1
+    fi
 }
 
 gpu_setup() {

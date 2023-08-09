@@ -5,7 +5,8 @@ import torch
 from torch.nn import functional as F
 from tqdm import tqdm
 
-from src.ddp.ddp_utils import dprint, dist_identity, DistributedWandb, distribute_str, conditional_join
+from src.ddp.ddp_utils import dprint, dist_identity, distribute_str, conditional_join
+from src.ddp.distributed_wandb import DistributedWandb
 from src.ddp.device_singleton import device
 from src.trainer_v1.factories import get_training_objects
 from src.utilities import current_config
@@ -48,30 +49,32 @@ def train(training_items, epoch, dry_run=False):
     return training_loss
 
 
-def validate(training_items):
+def validate(training_items, type="validation"):
     model = training_items.model
-    validation_loader = training_items.validation_loader
-    validation_losses = []
+    data_loader = training_items.validation_loader if type == "validation" else training_items.test_loader
+    if data_loader is None:
+        return None
+    losses = []
     _device = device.get()
     with conditional_join(model):
         with torch.no_grad():
-            pbar = tqdm(validation_loader, desc=f"Rank 0 | Validation",
+            pbar = tqdm(data_loader, desc=f"Rank 0 | {type.capitalize()}",
                         position=2, leave=False,
                         colour="yellow", disable=dist_identity.rank != 0)
             for (data, target) in pbar:
                 data, target = data.to(_device), target.to(_device)
                 output = model(data)
-                validation_losses.append(F.nll_loss(output, target, reduction='sum').item())
+                losses.append(F.nll_loss(output, target, reduction='sum').item())
             pbar.close()
 
-    validation_loss = None
-    if len(validation_losses) > 0:
-        validation_loss = sum(validation_losses) / len(validation_losses)
+    average_loss = None
+    if len(losses) > 0:
+        average_loss = sum(losses) / len(losses)
 
     if current_config.stdout:
-        dprint(f'\nValidation set: Average loss: {validation_loss:.4f}\n', flush=True)
+        dprint(f'\n{type.capitalize()} set: Average loss: {average_loss:.4f}\n', flush=True)
 
-    return validation_loss
+    return average_loss
 
 
 def training_loop(dry_run=False, no_save=False):
@@ -80,23 +83,32 @@ def training_loop(dry_run=False, no_save=False):
 
     # Wandb watch model
     wandb = DistributedWandb()
-    wandb.watch(training_items.model)
+    if not device.is_mps():
+        # Wandb watch model does not work seem to work well with MPS
+        wandb.watch(training_items.model)
 
     # Training loop, conditional join is used to make sure that all processes
-    # are in sync when one process is done before the others (avoids hanging)
+    # are in sync when one process is done before the others (avoids process hanging forever)
     with conditional_join(training_items.model, training_items.optimizer):
         for epoch in tqdm(range(current_config["max_epochs"]), desc="Epochs", position=1, leave=False, colour="green",
                           disable=dist_identity.rank != 0):
             training_loss = train(training_items=training_items, epoch=epoch, dry_run=dry_run)
-            validation_loss = validate(training_items)
+            validation_loss = validate(training_items, type="validation")
             training_items.scheduler.step()
             wandb.log({"Training Loss": training_loss,
                        "Validation Loss": validation_loss,
                        "Epoch": epoch,
                        "lr": training_items.scheduler.get_last_lr()[0]})
 
+        if training_items.test_loader is not None:
+            test_loss = validate(training_items, type="test")
+            wandb.log({"Test Loss": test_loss})
+
     if not no_save and dist_identity.rank == 0:
-        torch.save(training_items.model.state_dict(), os.path.join(wandb.run.dir, "saved_model.pt"))
+        run_dir = wandb.run_dir if wandb.run_dir is not None else os.path.join(current_config.project_root, "models")
+        os.makedirs(run_dir, exist_ok=True)
+        model_name = f'{current_config.get("project", "default")}_{current_config.hash}.pt'
+        torch.save(training_items.model.state_dict(), os.path.join(run_dir, model_name))
         dprint("Saved model")
 
 
