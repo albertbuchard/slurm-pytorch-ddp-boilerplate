@@ -8,7 +8,7 @@ from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
 from torch.utils.data import DataLoader, Subset, IterableDataset, DistributedSampler
 from torchvision import datasets, transforms
 
-from src.ddp.ddp_utils import dprint, dist_identity
+from src.ddp.ddp_utils import dprint, dist_identity, safe_barrier
 from src.ddp.device_singleton import device
 from src.ddp.distributed_wandb import DistributedWandb
 from src.ddp.model_utils import count_parameters, size_of_model
@@ -53,10 +53,12 @@ def get_datasets():
     data_folder = current_config.get("data_folder", os.path.join(current_config["project_root"], "data"))
     os.makedirs(data_folder, exist_ok=True)
 
-    train_dataset = datasets.MNIST(data_folder, train=True, download=True,
+    train_dataset = datasets.MNIST(data_folder, train=True,
+                                   download=dist_identity.rank == 0,
                                    transform=transform)
     test_dataset = datasets.MNIST(data_folder, train=False,
                                   transform=transform)
+    safe_barrier()
 
     # Split training dataset into training and validation
     # test_size not used here
