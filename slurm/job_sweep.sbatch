@@ -10,7 +10,7 @@
 #SBATCH --gres=gpu:2              # GPUs per node
 #SBATCH --partition=shared-gpu
 
-../setup_slurm.sh
+./setup_slurm.sh
 
 echo " * * * Starting slurm run. * * *"
 
