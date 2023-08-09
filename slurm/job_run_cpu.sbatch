@@ -13,6 +13,7 @@
 
 echo " * * * Starting slurm run. * * *"
 
+source $VENV_PATH/bin/activate
 srun python3 ../main.py --cpu
 
 echo " * * * Slurm run finished. * * *"
