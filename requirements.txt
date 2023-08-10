@@ -8,3 +8,4 @@ seaborn==0.12.2
 tqdm==4.65.0
 wandb==0.15.5
 python-dotenv==1.0.0
+pytest-mock==3.11.1
