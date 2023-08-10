@@ -48,6 +48,10 @@ class DDPMetricsLogger:
             keys = self.logs.keys()
         wandb = DistributedWandb()
         for key in keys:
+            if key not in self.logs:
+                continue
+            if len(self.logs[key]) == 0:
+                continue
             average = sum(self.logs[key]) / len(self.logs[key])
             # Key to Title
             title = key
