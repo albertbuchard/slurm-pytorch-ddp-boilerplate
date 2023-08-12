@@ -21,6 +21,7 @@ from src.ddp.distributed_wandb import DistributedWandb
 
 load_dotenv()
 
+
 def main():
     parser = argparse.ArgumentParser(description='BCause TorchRun')
     # Training

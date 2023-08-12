@@ -56,8 +56,7 @@ def validate(training_items, type="validation"):
         return None
     losses = []
     _device = device.get()
-    with conditional_join(model):
-        with torch.no_grad():
+    with conditional_join(model), torch.no_grad():
             pbar = tqdm(data_loader, desc=f"Rank 0 | {type.capitalize()}",
                         position=2, leave=False,
                         colour="yellow", disable=dist_identity.rank != 0)
