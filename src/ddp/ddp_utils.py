@@ -169,6 +169,8 @@ def ddp_setup(backend="nccl"):
             raise RuntimeError("CUDA is not available. NCCL is only supported on CUDA devices.")
         if dist_identity.local_rank is None:
             raise RuntimeError("LOCAL_RANK is not set. DDP is only supported on torch.distributed.")
+        # NCCL backend prefers the spawn start method to be set
+        torch.multiprocessing.set_start_method('spawn', force=True)
     elif backend != "gloo":
         raise ValueError("backend must be 'nccl' or 'gloo'")
 
