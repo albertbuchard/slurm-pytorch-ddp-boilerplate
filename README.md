@@ -309,6 +309,9 @@ During the development of this boilerplate, various learnings emerged that could
 
 ### Useful SLURM Commands:
 
+- Submit job: `sbatch <jobname>.sbatch`
+- Cancel job: `scancel <jobid>` 
+- Submit job with dependencies: `sbatch --dependency=afterok:<jobid> <jobname>.sbatch`
 - Monitor job: `watch -n 1 scontrol show job <jobid>`
 - Real-time logs: `tail -f  slurm-<jobid>.out`
 - View short logs: `cat slurm-<jobid>.out`
