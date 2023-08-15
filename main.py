@@ -84,7 +84,8 @@ def main():
 
     # Setup DDP
     if dist_identity.ddp_available:
-        ddp_setup(backend)
+        # Force spawn might be necessary for CUDA, but it is slower
+        ddp_setup(backend, force_spawn=False)
     elif not cpu and torch.has_mps:
         device.set("mps")
 

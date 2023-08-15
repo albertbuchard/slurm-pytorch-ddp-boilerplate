@@ -156,10 +156,11 @@ def dprint(*args, **kwargs):
     print(log_prefix, device_str, *args, **kwargs)
 
 
-def ddp_setup(backend="nccl"):
+def ddp_setup(backend="nccl", force_spawn=False):
     """
     Initializes the distributed group with the specified backend.
     :param backend: either "nccl" or "gloo"
+    :param force_spawn: if True, will force the spawn start method to be set, might be necessary for NCCL
     :return: None
     """
     if not torch.distributed.is_available():
@@ -170,7 +171,8 @@ def ddp_setup(backend="nccl"):
         if dist_identity.local_rank is None:
             raise RuntimeError("LOCAL_RANK is not set. DDP is only supported on torch.distributed.")
         # NCCL backend prefers the spawn start method to be set
-        torch.multiprocessing.set_start_method('spawn', force=True)
+        if force_spawn:
+            torch.multiprocessing.set_start_method('spawn', force=True)
     elif backend != "gloo":
         raise ValueError("backend must be 'nccl' or 'gloo'")
 
