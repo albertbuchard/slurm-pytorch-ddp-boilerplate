@@ -63,6 +63,7 @@ class DistributedIdentity:
     local_world_size = None
     master_addr = None
     master_port = None
+    is_torchelastic = None
     torch_restart_count = None
     torch_max_restarts = None
     torch_runid = None
@@ -100,8 +101,6 @@ class DistributedIdentity:
                 cls.nodename = os.environ["SLURMD_NODENAME"]
             else:
                 cls.nodename = gethostname()
-            if os.environ.get("SLURM_CPUS_PER_TASK", None) is not None:
-                cls.cpu_per_task = int(os.environ["SLURM_CPUS_PER_TASK"])
 
             if os.environ.get("GROUP_RANK", None) is not None:
                 cls.group_rank = int(os.environ["GROUP_RANK"])
@@ -111,10 +110,26 @@ class DistributedIdentity:
                 cls.torch_restart_count = int(os.environ["TORCHELASTIC_RESTART_COUNT"])
             if os.environ.get("TORCHELASTIC_MAX_RESTARTS", None) is not None:
                 cls.torch_max_restarts = int(os.environ["TORCHELASTIC_MAX_RESTARTS"])
+
             cls.is_torchelastic = False
-            if os.environ.get("TORCHELASTIC_RUN_ID", None) is not None:
+            if (os.environ.get("TORCHELASTIC_RUN_ID", None) is not None and
+                    os.environ.get("TORCHELASTIC_RUN_ID", None) != "" and
+                    os.environ.get("TORCHELASTIC_RUN_ID", None) != "none"):
                 cls.is_torchelastic = True
+                print("TORCHELASTIC_RUN_ID found. Setting torch_runid to that value.",
+                      os.environ["TORCHELASTIC_RUN_ID"])
                 cls.torch_runid = int(os.environ["TORCHELASTIC_RUN_ID"])
+
+            if os.environ.get("SLURM_CPUS_PER_TASK", None) is not None:
+                cls.cpu_per_task = int(os.environ["SLURM_CPUS_PER_TASK"])
+            elif cls.is_torchelastic:
+                print("SLURM_CPUS_PER_TASK not found. Using max(1, (os.cpu_count() // cls.world_size) - 1)")
+                print(f"os.cpu_count(): {os.cpu_count()}")
+                print(f"cls.world_size: {cls.world_size}")
+                print(
+                    f"max(1, (os.cpu_count() // cls.world_size) - 1): {max(1, (os.cpu_count() // cls.world_size) - 1)}")
+                cls.cpu_per_task = max(1, (os.cpu_count() // cls.world_size) - 1)
+
             cls.master_addr = os.environ.get('MASTER_ADDR', None)
             cls.master_port = os.environ.get('MASTER_PORT', None)
 
@@ -124,6 +139,17 @@ class DistributedIdentity:
     def ddp_available(self):
         return (dist.is_available() and self.world_size > 1 and
                 (self.is_torchelastic or (self.master_addr is not None and self.master_port is not None)))
+
+    @property
+    def is_slurm(self):
+        return os.environ.get("SLURM_JOB_ID", None) is not None
+
+    @property
+    def available_cpu_count(self):
+        if self.cpu_per_task is not None:
+            return self.cpu_per_task
+        import multiprocessing
+        return min(os.cpu_count(), multiprocessing.cpu_count())
 
     def __str__(self):
         return f"Rank {self.rank} (local rank {self.local_rank}) of {self.world_size} on {self.nodename}"
