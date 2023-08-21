@@ -1,4 +1,4 @@
-from src.ddp.ddp_merics_logger import DDPMetricsLogger
+from src.ddp.ddp_metrics_logger import DDPMetricsLogger
 
 
 def test_singleton():

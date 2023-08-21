@@ -66,6 +66,8 @@ Furthermore, the boilerplate has integrated support for Weights & Biases (wandb)
    python main.py 
    # For locally distributed training
    torchrun --nproc_per_node 2 --rdzv_id 1234 --rdzv_backend c10d --rdzv_endpoint localhost:12345 main.py --cpu # for CPU training
+   # or
+   torchrun --nproc_per_node 2 --master_addr localhost --master_port 12345 main.py # for GPU training
    ```
 
    Note: Add any required arguments as needed, see [command-lines arguments](#command-line-arguments).
